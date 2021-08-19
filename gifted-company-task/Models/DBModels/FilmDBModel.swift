@@ -17,7 +17,7 @@ class FilmDBModel: Object {
     dynamic var director: String = ""
     dynamic var producer: String = ""
     dynamic var releaseDate: String = ""
-    dynamic var characters = List<String>()
+    var characters = List<String>()
     
     override class func primaryKey() -> String? {
         return "id"

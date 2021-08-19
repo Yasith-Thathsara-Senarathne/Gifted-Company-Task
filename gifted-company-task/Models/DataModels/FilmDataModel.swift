@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import RealmSwift
 
 struct FilmDataModel: Decodable {
     var title: String
@@ -21,5 +22,18 @@ struct FilmDataModel: Decodable {
         case episodeId = "episode_id"
         case openingCrawl = "opening_crawl"
         case releaseDate = "release_date"
+    }
+    
+    var convertToDBModel: FilmDBModel {
+        let object = FilmDBModel()
+        object.title = title
+        object.episodeId = episodeId
+        object.openingCrawl = openingCrawl
+        object.director = director
+        object.producer = producer
+        object.releaseDate = releaseDate
+        object.characters.append(objectsIn: characters)
+        
+        return object
     }
 }

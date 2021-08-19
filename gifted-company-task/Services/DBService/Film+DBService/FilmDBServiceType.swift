@@ -6,3 +6,10 @@
 //
 
 import Foundation
+import RealmSwift
+
+protocol FilmDBServiceType {
+    var films: Results<FilmDBModel>? { get }
+    
+    func createFilmList(_ films: [FilmDBModel])
+}

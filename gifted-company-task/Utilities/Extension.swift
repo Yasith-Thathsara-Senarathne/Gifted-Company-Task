@@ -147,9 +147,9 @@ public extension UIView{
                     color: UIColor,
                     inset: CGFloat = 0.0,
                     thickness: CGFloat = 1.0) -> [UIView] {
-
+        
         var borders = [UIView]()
-
+        
         @discardableResult
         func addBorder(formats: String...) -> UIView {
             let border = UIView(frame: .zero)
@@ -158,31 +158,31 @@ public extension UIView{
             border.translatesAutoresizingMaskIntoConstraints = false
             addSubview(border)
             addConstraints(formats.flatMap {
-                NSLayoutConstraint.constraints(withVisualFormat: $0,
-                                               options: [],
-                                               metrics: ["inset": inset, "thickness": thickness],
-                                               views: ["border": border]) })
+                            NSLayoutConstraint.constraints(withVisualFormat: $0,
+                                                           options: [],
+                                                           metrics: ["inset": inset, "thickness": thickness],
+                                                           views: ["border": border]) })
             borders.append(border)
             return border
         }
-
-
+        
+        
         if edges.contains(.top) || edges.contains(.all) {
             addBorder(formats: "V:|-0-[border(==thickness)]", "H:|-inset-[border]-inset-|")
         }
-
+        
         if edges.contains(.bottom) || edges.contains(.all) {
             addBorder(formats: "V:[border(==thickness)]-0-|", "H:|-inset-[border]-inset-|")
         }
-
+        
         if edges.contains(.left) || edges.contains(.all) {
             addBorder(formats: "V:|-inset-[border]-inset-|", "H:|-0-[border(==thickness)]")
         }
-
+        
         if edges.contains(.right) || edges.contains(.all) {
             addBorder(formats: "V:|-inset-[border]-inset-|", "H:[border(==thickness)]-0-|")
         }
-
+        
         return borders
     }
     
@@ -191,7 +191,7 @@ public extension UIView{
             $0.removeFromSuperview()
         }
     }
-
+    
     ///Inser gradient layer to view
     func insertGradientLayer(top topColor: UIColor, bottom bottomColor: UIColor) {
         let layer = CAGradientLayer()
@@ -225,6 +225,36 @@ public extension UIView{
         self.translatesAutoresizingMaskIntoConstraints = true
     }
     
+}
+
+open class BaseView: UIView {
+    open func createViews(){}
+    open func insertAndLayoutSubviews(){}
+    open func config(){}
+    open func updateUIWithNewData(){}
+    open func setAppSetting(){}
+    
+    private func doLoadThings(){
+        backgroundColor = .white
+        createViews()
+        insertAndLayoutSubviews()
+        config()
+    }
+    
+    public override init(frame: CGRect) {
+        super.init(frame: frame)
+        doLoadThings()
+    }
+    
+    open override func willMove(toWindow newWindow: UIWindow?) {
+        super.willMove(toWindow: newWindow)
+        setAppSetting()
+    }
+    
+    public required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        doLoadThings()
+    }
 }
 
 open class BaseViewController: UIViewController {
@@ -284,5 +314,167 @@ open class BaseViewController: UIViewController {
         }
         
         isDisplayOnce = true
+    }
+}
+
+open class BaseCollectionViewController: BaseViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource {
+    open var layout:UICollectionViewLayout = UICollectionViewFlowLayout()
+    
+    public var cellID:String = "GenericCellID \(arc4random())"
+    public var emptyCellID:String = "EmptyCellID \(arc4random())"
+    
+    public var cellDisplayViewBounds:CGRect{
+        let topPadding = (navigationController?.navigationBar.frame.size.height ?? 0) + safeAreaEdgeInsets.top
+        let bottomPadding = (tabBarController?.tabBar.frame.size.height ?? 0) + safeAreaEdgeInsets.bottom
+        let mainSreenRect = UIScreen.main.bounds
+        return CGRect.init(origin: .zero,
+                           size: CGSize.init(width: mainSreenRect.width,
+                                             height: mainSreenRect.height - topPadding - bottomPadding))
+    }
+    
+    public var collectionView:UICollectionView!
+    
+    open override func createViews() {
+        collectionView = UICollectionView(frame:.zero, collectionViewLayout: layout)
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        collectionView.backgroundColor = .white
+    }
+    
+    open override func insertAndLayoutSubviews() {
+        view.addSubview(collectionView)
+        collectionView.activateLayouts(to: self.view)
+    }
+    
+    dynamic open func numberOfSections(in collectionView: UICollectionView) -> Int {return 1}
+    
+    dynamic open  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {return 0}
+    dynamic open  func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {return UICollectionViewCell()}
+    
+    dynamic open func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {return .zero}
+    
+    dynamic open func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {}
+    dynamic open func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {return UICollectionReusableView()}
+    dynamic open func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {return .zero}
+    dynamic open func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {return .zero}
+    dynamic open func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {}
+    dynamic open func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {return .zero}
+    
+    dynamic open func scrollViewDidScroll(_ scrollView: UIScrollView) {}
+    dynamic open func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {}
+    dynamic open func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {}
+    dynamic open func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {}
+    dynamic open func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {}
+    dynamic open func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {}
+    dynamic open func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {}
+    dynamic open func scrollViewDidScrollToTop(_ scrollView: UIScrollView) {}
+    dynamic open func scrollViewDidChangeAdjustedContentInset(_ scrollView: UIScrollView) {}
+}
+
+open class BaseCollectionViewCell: UICollectionViewCell {
+    open func createViews(){}
+    open func insertAndLayoutSubviews(){}
+    open func config(){}
+    
+    open func setAppSetting(){}
+    
+    private func doLoadThings(){
+        backgroundColor = .white
+        createViews()
+        insertAndLayoutSubviews()
+        config()
+    }
+    
+    public override init(frame: CGRect) {
+        super.init(frame: frame)
+        doLoadThings()
+    }
+    
+    public required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        doLoadThings()
+    }
+    
+    open override func willMove(toWindow newWindow: UIWindow?) {
+        super.willMove(toWindow: newWindow)
+        setAppSetting()
+    }
+}
+
+open class BaseTableViewController: BaseViewController, UITableViewDataSource, UITableViewDelegate {
+    public var cellID:String =  "GenericCellID \(arc4random())"
+    public var emptyCellID:String = "EmptyCellID \(arc4random())"
+    
+    public var tableview:UITableView!
+    
+    public var cellDisplayViewBounds:CGRect{
+        let topPadding = (navigationController?.navigationBar.frame.size.height ?? 0) + safeAreaEdgeInsets.top
+        let bottomPadding = (tabBarController?.tabBar.frame.size.height ?? 0) + safeAreaEdgeInsets.bottom
+        let mainSreenRect = UIScreen.main.bounds
+        return CGRect.init(origin: .zero,
+                           size: CGSize.init(width: mainSreenRect.width,
+                                             height: mainSreenRect.height - topPadding - bottomPadding))
+    }
+    
+    open override func createViews() {
+        tableview = UITableView()
+        tableview.delegate = self
+        tableview.dataSource = self
+        tableview.backgroundColor = .white
+    }
+    
+    open override func insertAndLayoutSubviews() {
+        view.addSubview(tableview)
+        tableview.activateLayouts(to: self.view)
+    }
+    
+    open override func config() {
+        tableview.tableFooterView = UIView()
+    }
+    
+    dynamic open func numberOfSections(in tableView: UITableView) -> Int {
+        return 1
+    }
+    
+    dynamic open func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {return 0}
+    dynamic open func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {return UITableViewCell()}
+    
+    dynamic open func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {return nil}
+    dynamic open func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {0}
+    
+    dynamic open func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat { return UITableView.automaticDimension}
+    
+    dynamic open func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? { nil }
+    dynamic open func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {0}
+    
+}
+
+open class BaseTableViewCell: UITableViewCell {
+    open func createViews(){}
+    open func insertAndLayoutSubviews(){}
+    open func config(){}
+    
+    open func setAppSetting(){}
+    
+    private func doLoadThings(){
+        createViews()
+        insertAndLayoutSubviews()
+        backgroundColor = .white
+        contentView.isUserInteractionEnabled = false
+        config()
+    }
+    
+    public override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        doLoadThings()
+    }
+    public required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        doLoadThings()
+    }
+    
+    open override func willMove(toWindow newWindow: UIWindow?) {
+        super.willMove(toWindow: newWindow)
+        setAppSetting()
     }
 }
